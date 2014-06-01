@@ -1,0 +1,22 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+	<Button
+	    android:id="@+id/cancel"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_margin="8dp"
+	    android:layout_alignParentBottom="true"	 
+	    android:textColor="#444444"
+	    android:textSize="18sp"		
+	    android:text="Cancel"/>
+	
+	<ListView 
+    	android:id="@+id/list"
+    	android:layout_width="fill_parent" 
+    	android:layout_height="fill_parent"
+    	android:layout_above="@id/cancel"/>
+	
+</RelativeLayout>

@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView 
+        android:id="@+id/folder"
+    	android:layout_width="fill_parent" 
+    	android:layout_height="wrap_content"
+    	android:layout_alignParentTop="true"
+    	android:textSize="14sp"
+    	android:textColor="#444444"
+    	android:background="#BBBBBB"
+    	android:padding="4dp"
+    	android:gravity="center"/>
+    
+	<TableLayout
+	    android:id="@+id/buttons"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	 	android:layout_alignParentBottom="true"
+	 	android:padding="8dp"
+	 	android:stretchColumns="0, 1">
+	 	
+	 	<TableRow>
+	 	    
+			<Button
+			    android:id="@+id/cancel"
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:textColor="#444444"
+			    android:textSize="18sp"		
+			    android:text="Cancel"/>
+					
+			<Button
+			    android:id="@+id/select"
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:textColor="#444444"
+			    android:textSize="18sp"		
+			    android:text="Select"/>
+	
+	 	</TableRow>
+	 	
+	</TableLayout>
+    
+
+	
+	<ListView 
+    	android:id="@+id/list"
+    	android:layout_width="fill_parent" 
+    	android:layout_height="fill_parent"
+    	android:layout_above="@id/buttons"
+    	android:layout_below="@id/folder"/>
+	
+</RelativeLayout>
