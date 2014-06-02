@@ -14,6 +14,8 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Bundle;
@@ -60,6 +62,9 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
     // handler
     private Handler handler = new Handler();
     
+    // app preferences
+    private SharedPreferences prefs;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -67,12 +72,18 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 		
 		setContentView(R.layout.droid_beam);
 		
-		// folder
-		updateFolder(Environment.getExternalStorageDirectory().getAbsolutePath());
+		// preferences
+		prefs = getSharedPreferences("DroidPlay", 0);
+		
+		// load selected folder
+		File folder = new File(prefs.getString("SelectedFolder", Environment.getExternalStorageDirectory().getAbsolutePath()));
+
+		// update folder label
+		updateFolder(folder.getAbsolutePath());
 		
 		// file grid
         GridView grid = (GridView) findViewById(R.id.grid);
-    	adapter = new ImageAdapter(this);
+    	adapter = new ImageAdapter(this, folder);
         grid.setAdapter(adapter);
         grid.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -124,6 +135,11 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 
 	@Override
 	protected void onDestroy() {
+		// save selected folder
+		Editor editor = prefs.edit();
+		editor.putString("SelectedFolder", adapter.getFolder().getAbsolutePath());
+		editor.commit();
+		
 		// JmDNS
 		if (jmdns != null) {
 	    	try {
@@ -161,7 +177,7 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 	    	new ConnectDialog(this, this, services.values()).show();
 	    	break;
 	    case R.id.action_folders:
-	    	new FolderDialog(this, this, Environment.getExternalStorageDirectory()).show();
+	    	new FolderDialog(this, this, adapter.getFolder()).show();
 	    	break;
 	    default:
 	    	break;
@@ -201,7 +217,7 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 
 	@Override
 	public void onFolderSelected(File folder) {
-		adapter.changeFolder(folder);
+		adapter.setFolder(folder);
 		updateFolder(folder.getAbsolutePath());
 	}
 	

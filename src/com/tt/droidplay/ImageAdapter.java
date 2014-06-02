@@ -7,7 +7,6 @@ import java.lang.ref.WeakReference;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -25,7 +24,7 @@ public class ImageAdapter extends BaseAdapter {
 	private Context context;
 	
 	// the current base folder
-	private File folder = Environment.getExternalStorageDirectory();
+	private File folder;
 	
 	// representation of images
     private File[] files;
@@ -35,19 +34,29 @@ public class ImageAdapter extends BaseAdapter {
      * 
      * @param context The application context
      */
-    ImageAdapter(Context context) {
+    ImageAdapter(Context context, File folder) {
     	this.context = context;
+    	this.folder = folder;
     	refresh();
     }
 
     /**
-     * Change to another folder.
+     * Set the current folder (and refresh)
      * 
-     * @param newFolder The new folder
+     * @param folder The new folder
      */
-    public void changeFolder(File newFolder) {
-    	folder = newFolder;
+    public void setFolder(File folder) {
+    	this.folder = folder;
     	refresh();
+    }
+    
+    /**
+     * Return the current folder.
+     * 
+     * @return The current folder
+     */
+    public File getFolder() {
+    	return (folder);
     }
     
 	@Override
