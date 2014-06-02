@@ -47,3 +47,4 @@ Credits
 - Unofficial AirPlay protocol (http://nto.github.io/AirPlay.html)
 - Placeholder image (http://placehold.it)
 - Android action bar icon pack (https://developer.android.com/design/downloads/index.html)
+- QR code generator (https://www.the-qrcode-generator.com)
