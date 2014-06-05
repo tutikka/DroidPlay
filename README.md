@@ -10,13 +10,14 @@ Scan the QR code below to download the latest APK file and install it.
 Features
 --------
 
-- Automatic discovery of AirPlay services within same network
-- Beam photos from your device and show them on an AirPlay enabled device (e.g. AppleTV, AirServer)
+- Automatic discovery of AirPlay services (e.g. Apple TV, AirServer) within same network
+- Beam photos from your device to AirPlay (PNG, JPG)
+- Stream videos from your device to AirPlay (MP4)
 
 Not Supported (at least yet...)
 -------------------------------
 
-- Play videos (from device or external service like YouTube)
+- Play videos from external services (e.g. YouTube)
 - Play music
 - Slideshows, transitions, etc. for photos
 
@@ -48,3 +49,4 @@ Credits
 - Placeholder image (http://placehold.it)
 - Android action bar icon pack (https://developer.android.com/design/downloads/index.html)
 - QR code generator (https://www.the-qrcode-generator.com)
+- Glyph icons in embedded in thumbnails (http://glyphicons.com)
