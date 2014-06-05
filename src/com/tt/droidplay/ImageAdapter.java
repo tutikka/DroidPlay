@@ -99,8 +99,7 @@ public class ImageAdapter extends BaseAdapter {
     	files = folder.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String filename) {
-				String lc = filename.toLowerCase();
-				return (lc.endsWith(".jpg") || lc.endsWith(".jpeg") || lc.endsWith(".png"));
+				return (FileUtils.isImage(filename) || FileUtils.isVideo(filename));
 			}
 		});
     	notifyDataSetChanged();
@@ -117,8 +116,13 @@ public class ImageAdapter extends BaseAdapter {
 	    @Override
 	    protected Bitmap doInBackground(File... params) {
 	        File file = params[0];
-	    	Bitmap bitmap = ImageUtils.createThumbnail(file, 128);
-	    	return (bitmap);
+	        if (file.getName().endsWith(".mp4")) {
+		    	Bitmap bitmap = ImageUtils.createVideoThumbnail(context, file, 128);
+		    	return (bitmap);
+	        } else {
+		    	Bitmap bitmap = ImageUtils.createImageThumbnail(context, file, 128);
+		    	return (bitmap);
+	        }
 	    }
 
 	    @Override

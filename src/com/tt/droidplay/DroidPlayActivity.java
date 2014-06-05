@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,7 +38,7 @@ import android.widget.AdapterView.OnItemClickListener;
  * 
  * @author Tuomas Tikka
  */
-public class DroidPlayActivity extends Activity implements ServiceListener, DialogCallback, BeamCallback {
+public class DroidPlayActivity extends Activity implements ServiceListener, DialogCallback, AirPlayClientCallback {
 
 	// the service type (which events to listen for)
     private static final String SERVICE_TYPE = "_airplay._tcp.local.";
@@ -57,13 +59,18 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
     private String selectedService = null;
     
     // communicate to service
-    private BeamService beamService;
+    private AirPlayClientService clientService;
     
     // handler
     private Handler handler = new Handler();
     
     // app preferences
     private SharedPreferences prefs;
+    
+    // http server
+    private HttpServer http;
+    
+    private InetAddress deviceAddress;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -90,15 +97,22 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				File file = (File) adapter.getItem(position);
 				try {
-					beamService.beamPhoto(file, services.get(selectedService));
+					if (FileUtils.isImage(file)) {
+						clientService.putImage(file, services.get(selectedService));
+					} else if (FileUtils.isVideo(file)) {
+						URL url = new URL("http", deviceAddress.getHostAddress(), 9999, Base64.encodeToString(file.getAbsolutePath().getBytes(), Base64.NO_WRAP|Base64.URL_SAFE));
+						clientService.playVideo(url, services.get(selectedService));
+					} else {
+						toast("Error: Unknown file type");
+					}
 				} catch (Exception e) {
 					Toast.makeText(DroidPlayActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 				}
 			}
 		});
 		
-        // beam service
-        beamService = new BeamService(this);
+        // client service
+        clientService = new AirPlayClientService(this);
         
         // services
         services = new HashMap<String, ServiceInfo>();
@@ -114,23 +128,28 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 			@Override
 			public void run() {
 		        try {
+		        	// device address
 		        	// local ip address
-		        	InetAddress inetAddress = getWifiInetAddress();
-		        	if (inetAddress == null) {
+		        	deviceAddress = getWifiInetAddress();
+		        	if (deviceAddress == null) {
 		        		toast("Error: Unable to get local IP address");
 		        		return;
 		        	}
 		        	
 		        	// init jmdns
-		        	jmdns = JmDNS.create(inetAddress);
+		        	jmdns = JmDNS.create(deviceAddress);
 		            jmdns.addServiceListener(SERVICE_TYPE, DroidPlayActivity.this);
-		            toast("Using local address " + inetAddress.getHostAddress());
+		            toast("Using local address " + deviceAddress.getHostAddress());
 		        } catch (Exception e) {
 		        	toast("Error: " + e.getMessage() == null ? "Unable to initialize discovery service" : e.getMessage());
 		        }
 			}
         };
         thread.start();
+        
+        // http server
+        http = new HttpServer();
+        http.startServer(9999);
 	}
 
 	@Override
@@ -139,6 +158,9 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 		Editor editor = prefs.edit();
 		editor.putString("SelectedFolder", adapter.getFolder().getAbsolutePath());
 		editor.commit();
+		
+		// http server
+		http.stopServer();
 		
 		// JmDNS
 		if (jmdns != null) {
@@ -156,8 +178,8 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
     	}
     	
     	// beam service
-    	if (beamService != null) {
-    		beamService.shutdown();
+    	if (clientService != null) {
+    		clientService.shutdown();
     	}
     	
 		super.onDestroy();
@@ -222,13 +244,33 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 	}
 	
 	@Override
-	public void onPhotoBeamSuccess(File file) {
-		toast(file.getName() + " beamed successfully");
+	public void onPutImageSuccess(File file) {
+		toast("Sent image " + file.getName());
 	}
 
 	@Override
-	public void onPhotoBeamError(File file, String message) {
-		toast("Error beaming " + file.getName() + (message == null ? "" : " :" + message));
+	public void onPutImageError(File file, String message) {
+		toast("Error sending image " + file.getName() + (message == null ? "" : " :" + message));
+	}
+	
+	@Override
+	public void onPlayVideoSuccess(URL location) {
+		toast("Sent video link " + location);
+	}
+
+	@Override
+	public void onPlayVideoError(URL location, String message) {
+		toast("Error sending video link " + location + (message == null ? "" : " :" + message));
+	}
+	
+	@Override
+	public void onStopVideoSuccess() {
+		toast("Sent request to stop video");
+	}
+
+	@Override
+	public void onStopVideoError(String message) {
+		toast("Error sending request to stop video" + (message == null ? "" : " :" + message));
 	}
 	
 	//
