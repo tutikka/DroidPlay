@@ -35,9 +35,9 @@ Instructions
 2. Download the latest APK file (under /apk) and install on your device (make sure you can install from unknown sources), or
 3. Clone the repository and build the APK file yourself
 4. Start the app and wait for services to be discovered
-5. Select the service to use from the Connect item in the action bar (icon will be green for resolved services)
-6. Select the folder (for your images) from the Folders item in the action bar
-7. Tap on an image thumbnail to beam it to your AirPlay service
+5. Swipe from left to right, and select Connect to AirPlay... from the menu (icon will be green for resolved services)
+6. Swipe from left to right, and select Choose folder... from the menu to find your content (or use the default Pictures or Videos)
+7. Tap on a thumbnail to beam it to your AirPlay service (images will be sent and shown directly, videos will be streamed from your device)
 
 Credits
 -------
