@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"
-        android:src="@drawable/ic_action_cast"
+        android:src="@null"
         android:tint="#444444">
 	</ImageView>
         

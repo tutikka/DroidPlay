@@ -5,8 +5,10 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.jmdns.JmDNS;
@@ -15,6 +17,7 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiManager;
@@ -22,23 +25,26 @@ import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Base64;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 /**
- * The main activitaty.
+ * The main activity.
  * 
  * @author Tuomas Tikka
  */
-public class DroidPlayActivity extends Activity implements ServiceListener, DialogCallback, AirPlayClientCallback {
+public class DroidPlayActivity extends Activity implements OnItemClickListener, ServiceListener, DialogCallback, AirPlayClientCallback {
 
 	// the service type (which events to listen for)
     private static final String SERVICE_TYPE = "_airplay._tcp.local.";
@@ -70,7 +76,17 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
     // http server
     private HttpServer http;
     
+    // holder for the device IP address
     private InetAddress deviceAddress;
+    
+    // holder for the navigation "drawer" adapter
+    private NavigationAdapter navigationAdapter;
+    
+    // holder for the navigation "drawer" layout
+    private DrawerLayout navigationLayout;
+    
+    // holder for the navigation "drawer" list
+    private ListView navigationList;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +103,19 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 
 		// update folder label
 		updateFolder(folder.getAbsolutePath());
+		
+		// navigation drawer
+		navigationLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		List<NavigationItem> navigationItems = new ArrayList<>();
+		navigationItems.add(new NavigationItem("connect", "Connect to AirPlay...", R.drawable.ic_action_cast));
+		navigationItems.add(new NavigationItem("pictures", "Pictures", R.drawable.ic_action_picture));
+		navigationItems.add(new NavigationItem("videos", "Videos", R.drawable.ic_action_video));
+		navigationItems.add(new NavigationItem("folders", "Choose folder...", R.drawable.ic_action_storage));
+		navigationItems.add(new NavigationItem("stop", "Stop playback", R.drawable.ic_action_stop));
+		navigationAdapter = new NavigationAdapter(this, navigationItems);
+		navigationList = (ListView) findViewById(R.id.drawer);
+		navigationList.setAdapter(navigationAdapter);
+		navigationList.setOnItemClickListener(this);
 		
 		// file grid
         GridView grid = (GridView) findViewById(R.id.grid);
@@ -106,7 +135,7 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 						toast("Error: Unknown file type");
 					}
 				} catch (Exception e) {
-					Toast.makeText(DroidPlayActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+					toast("Error: " + e.getMessage());
 				}
 			}
 		});
@@ -186,28 +215,6 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 	}
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.menu, menu);
-	    return true;
-	} 
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-	    case R.id.action_connect:
-	    	new ConnectDialog(this, this, services.values()).show();
-	    	break;
-	    case R.id.action_folders:
-	    	new FolderDialog(this, this, adapter.getFolder()).show();
-	    	break;
-	    default:
-	    	break;
-	    }
-	    return true;
-	} 
-	
-	@Override
 	public void serviceAdded(final ServiceEvent event) {
 		toast("Found AirPlay service: " + event.getName());
 		services.put(event.getInfo().getKey(), event.getInfo());
@@ -273,6 +280,38 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 		toast("Error sending request to stop video" + (message == null ? "" : " :" + message));
 	}
 	
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		NavigationItem item = navigationAdapter.getItem(position);
+		if (item == null) {
+			return;
+		}
+		if ("connect".equals(item.getTag())) {
+			new ConnectDialog(this, this, services.values()).show();
+		}
+		if ("pictures".equals(item.getTag())) {
+			File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+			adapter.setFolder(folder);
+			updateFolder(folder.getAbsolutePath());
+		}
+		if ("videos".equals(item.getTag())) {
+			File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
+			adapter.setFolder(folder);
+			updateFolder(folder.getAbsolutePath());
+		}
+		if ("folders".equals(item.getTag())) {
+			new FolderDialog(this, this, adapter.getFolder()).show();
+		}
+		if ("stop".equals(item.getTag())) {
+			try {
+				clientService.stopVideo(services.get(selectedService));
+			} catch (Exception e) {
+				toast("Error: " + e.getMessage());
+			}
+		}
+		navigationLayout.closeDrawer(navigationList);
+	}
+	
 	//
 	// Private
 	//
@@ -311,6 +350,66 @@ public class DroidPlayActivity extends Activity implements ServiceListener, Dial
 	        return (null);
 	    }
 	    return (null);
+	}
+	
+	private class NavigationItem {
+		
+		private String tag;
+		
+		private String name;
+		
+		private int icon;
+		
+		private NavigationItem(String tag, String name, int icon) {
+			this.tag = tag;
+			this.name = name;
+			this.icon = icon;
+		}
+
+		public String getTag() {
+			return tag;
+		}
+
+		public void setTag(String tag) {
+			this.tag = tag;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public int getIcon() {
+			return icon;
+		}
+
+		public void setIcon(int icon) {
+			this.icon = icon;
+		}
+		
+	}
+	
+	private class NavigationAdapter extends ArrayAdapter<NavigationItem> {
+
+		public NavigationAdapter(Context context, List<NavigationItem> items) {
+			super(context, 0, items);
+		}
+
+		@Override
+	    public View getView(int position, View convertView, ViewGroup parent) {
+	        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	        View view = inflater.inflate(R.layout.drawer_item, null);
+	        NavigationItem item = getItem(position);
+	        ImageView icon = (ImageView) view.findViewById(R.id.icon);
+	        icon.setImageResource(item.getIcon());
+	        TextView name = (TextView) view.findViewById(R.id.name);
+	        name.setText(item.getName());
+	        return (view);
+	    }
+		
 	}
 	
 }

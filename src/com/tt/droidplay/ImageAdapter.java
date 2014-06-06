@@ -116,12 +116,14 @@ public class ImageAdapter extends BaseAdapter {
 	    @Override
 	    protected Bitmap doInBackground(File... params) {
 	        File file = params[0];
-	        if (file.getName().endsWith(".mp4")) {
+	        if (FileUtils.isVideo(file)) {
 		    	Bitmap bitmap = ImageUtils.createVideoThumbnail(context, file, 128);
 		    	return (bitmap);
-	        } else {
+	        } else if (FileUtils.isImage(file)){
 		    	Bitmap bitmap = ImageUtils.createImageThumbnail(context, file, 128);
 		    	return (bitmap);
+	        } else {
+	        	return (null);
 	        }
 	    }
 

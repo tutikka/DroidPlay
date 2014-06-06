@@ -31,7 +31,7 @@ public class ImageUtils {
         Paint paint = new Paint();
         paint.setColor(Color.rgb(238, 238, 238));
         canvas.drawRect(0, 0, 32, 32, paint);
-        canvas.drawBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.glyphicons_008_film), 0, 0, null);
+        canvas.drawBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.glyphicons_173_play), 0, 0, null);
 		return (thumbnail);
 	}
 	

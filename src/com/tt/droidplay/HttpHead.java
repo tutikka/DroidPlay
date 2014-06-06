@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import android.util.Log;
+
 /**
  * Class that implements the head of a HTTP request.
  * 
@@ -14,6 +16,8 @@ import java.util.StringTokenizer;
  */
 public class HttpHead {
 
+	private static final String TAG = "HttpHead";
+	
 	// the http method (e.g. GET)
 	private String method;
 	
@@ -45,6 +49,7 @@ public class HttpHead {
 						head.method = st.nextToken().trim();
 						head.uri = st.nextToken().trim();
 						head.protocol = st.nextToken().trim();
+						Log.d(TAG, "found status line: " + line);
 					}
 				} else {
 					StringTokenizer st = new StringTokenizer(line, ":");
@@ -52,6 +57,7 @@ public class HttpHead {
 						String name = st.nextToken().trim();
 						String value = st.nextToken().trim();
 						head.headers.put(name, value);
+						Log.d(TAG, "found header: " + name + " = " + value);
 					}
 				}
 				index++;

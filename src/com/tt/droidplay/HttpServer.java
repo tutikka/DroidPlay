@@ -210,6 +210,7 @@ public class HttpServer {
             raf.close();
             out.flush();
             out.close();
+            socket.close();
             Log.d(TAG, "range download complete");
         } else {
         	Log.d(TAG, "detected full download");
@@ -229,6 +230,7 @@ public class HttpServer {
             out.flush();
             out.close();
             in.close();
+            socket.close();
             Log.d(TAG, "full download complete");
         }
 	}
