@@ -49,4 +49,4 @@ Credits
 - Placeholder image (http://placehold.it)
 - Android action bar icon pack (https://developer.android.com/design/downloads/index.html)
 - QR code generator (https://www.the-qrcode-generator.com)
-- Glyph icons in embedded in thumbnails (http://glyphicons.com)
+- Glyph icons embedded in thumbnails (http://glyphicons.com)
