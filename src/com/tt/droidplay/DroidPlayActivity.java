@@ -27,6 +27,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Base64;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -183,9 +184,14 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 
 	@Override
 	protected void onDestroy() {
-		// save selected folder
+		// save selected service & folder
 		Editor editor = prefs.edit();
-		editor.putString("SelectedFolder", adapter.getFolder().getAbsolutePath());
+		if (adapter.getFolder() != null) {
+			editor.putString("SelectedFolder", adapter.getFolder().getAbsolutePath());
+		}
+		if (selectedService != null) {
+			editor.putString("SelectedService", selectedService);
+		}
 		editor.commit();
 		
 		// http server
@@ -236,6 +242,14 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 	public void serviceResolved(ServiceEvent event) {
 		toast("Resolved AirPlay service: " + event.getName() + " @ " + event.getInfo().getURL());
 		services.put(event.getInfo().getKey(), event.getInfo());
+		if (selectedService == null) {
+			// try to see if the resolved one is the one that we last connected to -> autoconnect
+			String remembered = prefs.getString("SelectedService", null);
+			if (remembered != null && remembered.equals(event.getInfo().getKey())) {
+				selectedService = remembered;
+				toast("Using AirPlay service: " + event.getName());
+			}
+		}
 	}
 
 	@Override
@@ -330,7 +344,15 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
-				Toast.makeText(DroidPlayActivity.this, message, Toast.LENGTH_SHORT).show();
+				LayoutInflater inflater = getLayoutInflater();
+				View layout = inflater.inflate(R.layout.toast, (ViewGroup) findViewById(R.id.toast_layout_root));
+				TextView text = (TextView) layout.findViewById(R.id.text);
+				text.setText(message);
+				Toast toast = new Toast(getApplicationContext());
+				toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+				toast.setDuration(Toast.LENGTH_SHORT);
+				toast.setView(layout);
+				toast.show();
 			}
 		});
 	}
