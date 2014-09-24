@@ -111,6 +111,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		navigationItems.add(new NavigationItem("connect", "Connect to AirPlay...", R.drawable.ic_action_cast));
 		navigationItems.add(new NavigationItem("pictures", "Pictures", R.drawable.ic_action_picture));
 		navigationItems.add(new NavigationItem("videos", "Videos", R.drawable.ic_action_video));
+		navigationItems.add(new NavigationItem("downloads", "Downloads", R.drawable.ic_action_download));
 		navigationItems.add(new NavigationItem("folders", "Choose folder...", R.drawable.ic_action_storage));
 		navigationItems.add(new NavigationItem("stop", "Stop playback", R.drawable.ic_action_stop));
 		navigationAdapter = new NavigationAdapter(this, navigationItems);
@@ -310,6 +311,11 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		}
 		if ("videos".equals(item.getTag())) {
 			File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
+			adapter.setFolder(folder);
+			updateFolder(folder.getAbsolutePath());
+		}
+		if ("downloads".equals(item.getTag())) {
+			File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 			adapter.setFolder(folder);
 			updateFolder(folder.getAbsolutePath());
 		}
