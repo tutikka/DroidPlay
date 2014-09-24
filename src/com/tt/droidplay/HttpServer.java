@@ -4,11 +4,16 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -50,6 +55,7 @@ public class HttpServer {
 			Log.d(TAG, "started http server on port " + port);
 		} catch (Exception e) {
 			Log.e(TAG, "error starting http server: " + e.getMessage());
+			e.printStackTrace(System.err);
 			return;
 		}
 		esServer.submit(new ServerWorker(serverSocket));
@@ -66,6 +72,7 @@ public class HttpServer {
 				Log.d(TAG, "stopped http server");
 			} catch (Exception e) {
 				Log.e(TAG, "error stopping http server: " + e.getMessage());
+				e.printStackTrace(System.err);
 			}
 		}
 	}
@@ -91,6 +98,7 @@ public class HttpServer {
 				}
 			} catch (Exception e) {
 				Log.e(TAG, "error listening for client requests: " + e.getMessage());
+				e.printStackTrace(System.err);
 			}
 		}
 		
@@ -114,40 +122,90 @@ public class HttpServer {
 					return;
 				}
 				handleDownload(socket, head);
-			} catch (Exception e) {
-				Log.e(TAG, "error reading client request: " + e.getMessage());
+			} catch (IOException e) {
+				Log.w(TAG, "could not read from client: " + e.getMessage());
+				e.printStackTrace(System.err);
+			} finally {
+				if (socket != null) {
+					try {
+						socket.close();
+						Log.d(TAG, "client socket closed");
+					} catch (Exception e) {
+						Log.w(TAG, "could not close client socket: " + e.getMessage());
+						e.printStackTrace(System.err);
+					}
+				}
 			}
 		}
 
 	}
 	
-	private void handle400(Socket socket) throws Exception {
-		PrintWriter pw = new PrintWriter(socket.getOutputStream());
-		pw.println("HTTP/1.1 400 Bad Request");
-		pw.println();
-		pw.close();
-		socket.close();
+	private void handle400(Socket socket) {
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(socket.getOutputStream());
+			pw.println("HTTP/1.1 400 Bad Request");
+            pw.println("Date: " + getDateHeader());
+            pw.println("Server: " + getServerHeader());
+			pw.println();
+		} catch (IOException e) {
+			Log.e(TAG, "could not respond to client (HTTP 400): " + e.getMessage());
+			e.printStackTrace(System.err);
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+		}
 	}
 	
-	private void handle403(Socket socket) throws Exception {
-		PrintWriter pw = new PrintWriter(socket.getOutputStream());
-		pw.println("HTTP/1.1 403 Forbidden");
-		pw.println();
-		pw.close();
-		socket.close();
+	private void handle403(Socket socket) {
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(socket.getOutputStream());
+			pw.println("HTTP/1.1 403 Forbidden");
+            pw.println("Date: " + getDateHeader());
+            pw.println("Server: " + getServerHeader());
+			pw.println();
+		} catch (IOException e) {
+			Log.w(TAG, "could not respond to client (HTTP 403): " + e.getMessage());
+			e.printStackTrace(System.err);
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+		}
 	}
 	
-	private void handle404(Socket socket) throws Exception {
-		PrintWriter pw = new PrintWriter(socket.getOutputStream());
-		pw.println("HTTP/1.1 404 Not Found");
-		pw.println();
-		pw.close();
-		socket.close();
+	private void handle404(Socket socket) {
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(socket.getOutputStream());
+			pw.println("HTTP/1.1 404 Not Found");
+            pw.println("Date: " + getDateHeader());
+            pw.println("Server: " + getServerHeader());
+			pw.println();
+		} catch (IOException e) {
+			Log.w(TAG, "could not respond to client (HTTP 404): " + e.getMessage());
+			e.printStackTrace(System.err);
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+		}
 	}
 	
-	private void handleDownload(Socket socket, HttpHead head) throws Exception {
-		String path = new String(Base64.decode(head.getUri(), Base64.NO_WRAP|Base64.URL_SAFE), "UTF-8");
-        File file = new File(path);
+	private void handleDownload(Socket socket, HttpHead head) {
+		String path = null;
+		try {
+			path = new String(Base64.decode(head.getUri(), Base64.NO_WRAP|Base64.URL_SAFE), "UTF-8");
+			Log.d(TAG, "parsed download path: " + path);
+		} catch (Exception e) {
+			Log.w(TAG, "could not parse uri from request: " + e.getMessage());
+			e.printStackTrace(System.err);
+			handle400(socket);
+			return;
+		}
+		File file = new File(path);
         if (!file.exists()) {
         	Log.w(TAG, "file not found: " + path);
         	handle404(socket);
@@ -177,7 +235,7 @@ public class HttpServer {
                     Log.d(TAG, "range request: " + start + "-" + end);
                 } else {
                     isRange = false;
-                    Log.d(TAG, "invalid range: " + range);
+                    Log.w(TAG, "invalid range: " + range);
                 }
             } else {
             	Log.w(TAG, "invalid range: " + range);
@@ -185,54 +243,111 @@ public class HttpServer {
         }
         if (isRange) {
         	Log.d(TAG, "detected range download");
-            BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
-            out.write("HTTP/1.1 206 PARTIAL CONTENT\n".getBytes());
-            out.write(("Content-Length: " + (end - start + 1) + "\n").getBytes());
-            out.write(("Content-Range: bytes " + start + "-" + end + "/" + file.length() + "\n").getBytes());
-            out.write(("Content-Disposition: attachment; filename=\"" + file.getName() + "\"\n").getBytes());
-            out.write("Cache-Control: private, max-age=0\n".getBytes());
-            out.write("Accept-Ranges: bytes\n".getBytes());
-            out.write("Content-Type: video/mp4\n".getBytes());
-            out.write("\n".getBytes());
-            byte[] buffer = new byte[32768];
-            RandomAccessFile raf = new RandomAccessFile(file, "r");
-            raf.seek(start);
-            int r;
-            long t = end - start + 1;
-            while ((r = raf.read(buffer)) > 0) {
-                if ((t -= r) > 0) {
-                    out.write(buffer, 0, r);
-                } else {
-                    out.write(buffer, 0, (int) t + r);
-                    break;
-                }
-            }
-            raf.close();
-            out.flush();
-            out.close();
-            socket.close();
+        	BufferedOutputStream out = null;
+        	RandomAccessFile raf = null;
+        	try {
+	            out = new BufferedOutputStream(socket.getOutputStream());
+	            out.write("HTTP/1.1 206 Partial Content\n".getBytes());
+	            out.write(("Date: " + getDateHeader() + "\n").getBytes());
+	            out.write(("Server: " + getServerHeader() + "\n").getBytes());
+	            out.write(("Content-Length: " + (end - start + 1) + "\n").getBytes());
+	            out.write(("Content-Range: bytes " + start + "-" + end + "/" + file.length() + "\n").getBytes());
+	            // out.write(("Content-Disposition: attachment; filename=\"" + file.getName() + "\"\n").getBytes());
+	            // out.write("Cache-Control: private, max-age=0\n".getBytes());
+	            out.write("Accept-Ranges: bytes\n".getBytes());
+	            out.write("Content-Type: video/mp4\n".getBytes());
+	            out.write("\n".getBytes());
+	            byte[] buffer = new byte[32768];
+	            raf = new RandomAccessFile(file, "r");
+	            raf.seek(start);
+	            int r;
+	            long t = end - start + 1;
+	            while ((r = raf.read(buffer)) > 0) {
+	                if ((t -= r) > 0) {
+	                    out.write(buffer, 0, r);
+	                } else {
+	                    out.write(buffer, 0, (int) t + r);
+	                    break;
+	                }
+	            }
+	            out.flush();
+        	} catch (IOException e) {
+        		Log.w(TAG, "error streaming data to client (HTTP 206): " + e.getMessage());
+        		e.printStackTrace(System.err);
+        	} finally {
+        		if (raf != null) {
+	        		try {
+	        			raf.close();
+	        		} catch (Exception e) {
+						Log.w(TAG, "could not close file (HTTP 206): " + e.getMessage());
+						e.printStackTrace(System.err);
+	        		}
+        		}
+        		if (out != null) {
+        			try {
+        	            out.close();
+        			} catch (Exception e) {
+    					Log.w(TAG, "could not close output stream (HTTP 206): " + e.getMessage());
+    					e.printStackTrace(System.err);
+        			}
+        		}
+        	}
             Log.d(TAG, "range download complete");
         } else {
         	Log.d(TAG, "detected full download");
-            BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
-            out.write("HTTP/1.1 200 OK\n".getBytes());
-            out.write(("Content-Length: " + file.length() + "\n").getBytes());
-            out.write(("Content-Disposition: attachment; filename=\"" + file.getName() + "\"\n").getBytes());
-            out.write("Cache-Control: private, max-age=0\n".getBytes());
-            out.write("Content-Type: video/mp4\n".getBytes());
-            out.write("\n".getBytes());
-            final byte[] buffer = new byte[32768];
-            final BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-            int r;
-            while ((r = in.read(buffer)) > 0) {
-            	out.write(buffer, 0, r);
-            }
-            out.flush();
-            out.close();
-            in.close();
-            socket.close();
+        	BufferedOutputStream out = null;
+        	BufferedInputStream in = null;
+        	try {
+	            out = new BufferedOutputStream(socket.getOutputStream());
+	            out.write("HTTP/1.1 200 OK\n".getBytes());
+	            out.write(("Date: " + getDateHeader() + "\n").getBytes());
+	            out.write(("Server: " + getServerHeader() + "\n").getBytes());
+	            out.write(("Content-Length: " + file.length() + "\n").getBytes());
+	            // out.write(("Content-Disposition: attachment; filename=\"" + file.getName() + "\"\n").getBytes());
+	            // out.write("Cache-Control: private, max-age=0\n".getBytes());
+	            out.write("Content-Type: video/mp4\n".getBytes());
+	            out.write("\n".getBytes());
+	            byte[] buffer = new byte[32768];
+	            in = new BufferedInputStream(new FileInputStream(file));
+	            int r;
+	            while ((r = in.read(buffer)) > 0) {
+	            	out.write(buffer, 0, r);
+	            }
+	            out.flush();
+        	} catch (IOException e) {
+        		Log.w(TAG, "error streaming data to client (HTTP 200): " + e.getMessage());
+        		e.printStackTrace(System.err);
+        	} finally {
+        		if (in != null) {
+	        		try {
+	        			in.close();
+	        		} catch (Exception e) {
+						Log.w(TAG, "could not close input stream (HTTP 200): " + e.getMessage());
+						e.printStackTrace(System.err);
+	        		}
+        		}
+        		if (out != null) {
+        			try {
+        	            out.close();
+        			} catch (Exception e) {
+    					Log.w(TAG, "could not close output stream (HTTP 200): " + e.getMessage());
+    					e.printStackTrace(System.err);
+        			}
+        		}
+        	}
             Log.d(TAG, "full download complete");
         }
+	}
+
+	
+	private static String getDateHeader() {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		return (simpleDateFormat.format(new Date()));
+	}
+	
+	private static String getServerHeader() {
+		return ("DroidPlay/0.2.3 (Android)");
 	}
 	
 }
