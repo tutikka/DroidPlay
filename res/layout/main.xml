@@ -37,8 +37,8 @@
 	 		android:layout_height="wrap_content"
 	 		android:layout_below="@id/folder"
 	 		android:layout_margin="8dp"
-	 		android:textColor="#444444"
-	 		android:textSize="16sp"
+	 		android:textColor="#888888"
+	 		android:textSize="18sp"
 	 		android:text="-- No files found --"
 	 		android:gravity="center"
 	 		android:visibility="gone"/>
