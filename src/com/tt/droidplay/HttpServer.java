@@ -147,6 +147,7 @@ public class HttpServer {
 			pw.println("HTTP/1.1 400 Bad Request");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
+            pw.println("Connection: close");
 			pw.println();
 		} catch (IOException e) {
 			Log.e(TAG, "could not respond to client (HTTP 400): " + e.getMessage());
@@ -165,6 +166,7 @@ public class HttpServer {
 			pw.println("HTTP/1.1 403 Forbidden");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
+            pw.println("Connection: close");
 			pw.println();
 		} catch (IOException e) {
 			Log.w(TAG, "could not respond to client (HTTP 403): " + e.getMessage());
@@ -183,6 +185,7 @@ public class HttpServer {
 			pw.println("HTTP/1.1 404 Not Found");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
+            pw.println("Connection: close");
 			pw.println();
 		} catch (IOException e) {
 			Log.w(TAG, "could not respond to client (HTTP 404): " + e.getMessage());
@@ -252,10 +255,9 @@ public class HttpServer {
 	            out.write(("Server: " + getServerHeader() + "\n").getBytes());
 	            out.write(("Content-Length: " + (end - start + 1) + "\n").getBytes());
 	            out.write(("Content-Range: bytes " + start + "-" + end + "/" + file.length() + "\n").getBytes());
-	            // out.write(("Content-Disposition: attachment; filename=\"" + file.getName() + "\"\n").getBytes());
-	            // out.write("Cache-Control: private, max-age=0\n".getBytes());
 	            out.write("Accept-Ranges: bytes\n".getBytes());
 	            out.write("Content-Type: video/mp4\n".getBytes());
+	            out.write("Connection: close\n".getBytes());
 	            out.write("\n".getBytes());
 	            byte[] buffer = new byte[32768];
 	            raf = new RandomAccessFile(file, "r");
@@ -303,9 +305,8 @@ public class HttpServer {
 	            out.write(("Date: " + getDateHeader() + "\n").getBytes());
 	            out.write(("Server: " + getServerHeader() + "\n").getBytes());
 	            out.write(("Content-Length: " + file.length() + "\n").getBytes());
-	            // out.write(("Content-Disposition: attachment; filename=\"" + file.getName() + "\"\n").getBytes());
-	            // out.write("Cache-Control: private, max-age=0\n".getBytes());
 	            out.write("Content-Type: video/mp4\n".getBytes());
+	            out.write("Connection: close\n".getBytes());
 	            out.write("\n".getBytes());
 	            byte[] buffer = new byte[32768];
 	            in = new BufferedInputStream(new FileInputStream(file));
