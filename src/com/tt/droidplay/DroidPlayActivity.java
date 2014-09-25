@@ -18,6 +18,7 @@ import javax.jmdns.ServiceListener;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiManager;
@@ -27,8 +28,10 @@ import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Base64;
-import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -135,7 +138,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 					if (FileUtils.isImage(file)) {
 						clientService.putImage(file, services.get(selectedService));
 					} else if (FileUtils.isVideo(file)) {
-						URL url = new URL("http", deviceAddress.getHostAddress(), 9999, Base64.encodeToString(file.getAbsolutePath().getBytes(), Base64.NO_WRAP|Base64.URL_SAFE));
+						URL url = new URL("http", deviceAddress.getHostAddress(), prefs.getInt("ServerPort", 9999), Base64.encodeToString(file.getAbsolutePath().getBytes(), Base64.NO_WRAP|Base64.URL_SAFE));
 						clientService.playVideo(url, services.get(selectedService));
 					} else {
 						toast("Error: Unknown file type");
@@ -184,9 +187,31 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
         
         // http server
         http = new HttpServer();
-        http.startServer(9999);
+        http.startServer(prefs.getInt("ServerPort", 9999));
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.main_actions, menu);
+	    return (true);
+	} 
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	    case R.id.settings: {
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
+			break;
+	    }
+	    default:
+	    	break;
+	    }
+
+	    return (true);
+	} 	
+	
 	@Override
 	protected void onDestroy() {
 		// save selected service & folder
@@ -365,7 +390,6 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 				TextView text = (TextView) layout.findViewById(R.id.text);
 				text.setText(message);
 				Toast toast = new Toast(getApplicationContext());
-				// toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
 				toast.setDuration(Toast.LENGTH_SHORT);
 				toast.setView(layout);
 				toast.show();
