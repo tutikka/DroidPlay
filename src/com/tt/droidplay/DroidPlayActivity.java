@@ -100,7 +100,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		prefs = getSharedPreferences("DroidPlay", 0);
 		
 		// action bar
-		getActionBar().setSubtitle("Not connected");
+		subtitle("Not connected");
 		
 		// load selected folder
 		File folder = new File(prefs.getString("SelectedFolder", Environment.getExternalStorageDirectory().getAbsolutePath()));
@@ -243,7 +243,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		services.remove(event.getInfo().getKey());
 		if (selectedService != null && selectedService.equals(event.getName())) {
 			selectedService = null;
-			getActionBar().setSubtitle("Not connected");
+			subtitle("Not connected");
 		}
 	}
 
@@ -256,7 +256,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 			String remembered = prefs.getString("SelectedService", null);
 			if (remembered != null && remembered.equals(event.getInfo().getKey())) {
 				selectedService = remembered;
-				getActionBar().setSubtitle("Connected to " + event.getName());
+				subtitle(event.getName());
 				toast("Using AirPlay service: " + event.getName());
 			}
 		}
@@ -265,7 +265,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 	@Override
 	public void onServiceSelected(ServiceInfo serviceInfo) {
 		selectedService = serviceInfo.getKey();
-		getActionBar().setSubtitle("Connected to " + serviceInfo.getName());
+		subtitle(serviceInfo.getName());
 		toast("Using AirPlay service: " + serviceInfo.getName());
 	}
 
@@ -371,6 +371,18 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 				toast.show();
 			}
 		});
+	}
+	
+	private void subtitle(final String message) {
+		if (message == null) {
+			return;
+		}
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				getActionBar().setSubtitle(message);
+			}
+		});		
 	}
 	
 	private InetAddress getWifiInetAddress() {
