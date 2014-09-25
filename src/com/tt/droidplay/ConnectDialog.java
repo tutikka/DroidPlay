@@ -52,6 +52,7 @@ public class ConnectDialog extends Dialog implements android.view.View.OnClickLi
 		}
 		
 		ListView list = (ListView) findViewById(R.id.list);
+		list.setEmptyView(findViewById(R.id.empty));
 		list.setAdapter(adapter);
 		list.setOnItemClickListener(this);
 		

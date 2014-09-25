@@ -19,4 +19,16 @@
     	android:layout_height="fill_parent"
     	android:layout_above="@id/cancel"/>
 	
+	<TextView 
+	    android:id="@+id/empty"
+ 		android:layout_width="fill_parent"
+ 		android:layout_height="wrap_content"
+ 		android:layout_alignParentTop="true"
+ 		android:layout_margin="8dp"
+ 		android:textColor="#444444"
+ 		android:textSize="16sp"
+ 		android:text="-- No services found --"
+ 		android:gravity="center"
+ 		android:visibility="gone"/>
+	
 </RelativeLayout>

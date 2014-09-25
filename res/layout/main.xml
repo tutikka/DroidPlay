@@ -31,6 +31,18 @@
 	    	android:gravity="center"
 	    	android:background="#eeeeee"/>
 	
+		<TextView 
+		    android:id="@+id/empty"
+	 		android:layout_width="fill_parent"
+	 		android:layout_height="wrap_content"
+	 		android:layout_below="@id/folder"
+	 		android:layout_margin="8dp"
+	 		android:textColor="#444444"
+	 		android:textSize="16sp"
+	 		android:text="-- No files found --"
+	 		android:gravity="center"
+	 		android:visibility="gone"/>
+		
 	</RelativeLayout>
 
 	<ListView android:id="@+id/drawer"

@@ -13,12 +13,18 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"/>
     
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#eeeeee"/>
+    
     <TextView 
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:textSize="16sp"
-        android:textColor="#eeeeee"/>
+        android:textColor="#eeeeee"
+        android:layout_marginLeft="8dp"/>
     
 </LinearLayout>

@@ -94,10 +94,13 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.droid_beam);
+		setContentView(R.layout.main);
 		
 		// preferences
 		prefs = getSharedPreferences("DroidPlay", 0);
+		
+		// action bar
+		getActionBar().setSubtitle("Not connected");
 		
 		// load selected folder
 		File folder = new File(prefs.getString("SelectedFolder", Environment.getExternalStorageDirectory().getAbsolutePath()));
@@ -121,6 +124,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		
 		// file grid
         GridView grid = (GridView) findViewById(R.id.grid);
+        grid.setEmptyView(findViewById(R.id.empty));
     	adapter = new ImageAdapter(this, folder);
         grid.setAdapter(adapter);
         grid.setOnItemClickListener(new OnItemClickListener() {
@@ -237,6 +241,10 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 	public void serviceRemoved(ServiceEvent event) {
 		toast("Removed AirPlay service: " + event.getName());
 		services.remove(event.getInfo().getKey());
+		if (selectedService != null && selectedService.equals(event.getName())) {
+			selectedService = null;
+			getActionBar().setSubtitle("Not connected");
+		}
 	}
 
 	@Override
@@ -248,6 +256,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 			String remembered = prefs.getString("SelectedService", null);
 			if (remembered != null && remembered.equals(event.getInfo().getKey())) {
 				selectedService = remembered;
+				getActionBar().setSubtitle("Connected to " + event.getName());
 				toast("Using AirPlay service: " + event.getName());
 			}
 		}
@@ -256,6 +265,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 	@Override
 	public void onServiceSelected(ServiceInfo serviceInfo) {
 		selectedService = serviceInfo.getKey();
+		getActionBar().setSubtitle("Connected to " + serviceInfo.getName());
 		toast("Using AirPlay service: " + serviceInfo.getName());
 	}
 
@@ -355,7 +365,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 				TextView text = (TextView) layout.findViewById(R.id.text);
 				text.setText(message);
 				Toast toast = new Toast(getApplicationContext());
-				toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+				// toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
 				toast.setDuration(Toast.LENGTH_SHORT);
 				toast.setView(layout);
 				toast.show();
