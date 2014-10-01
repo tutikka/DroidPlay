@@ -28,6 +28,8 @@ Screenshots
 
 ![ScreenShot](/screenshots/ss-2.png)
 
+![ScreenShot](/screenshots/ss-3.png)
+
 Instructions
 ------------
 
