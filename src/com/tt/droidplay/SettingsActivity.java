@@ -12,7 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +30,9 @@ public class SettingsActivity extends Activity {
 	
     // server port
     EditText serverPort;
+    
+    // image transition
+    Spinner imageTransition;
     
     // handler
     private Handler handler = new Handler();
@@ -50,6 +55,11 @@ public class SettingsActivity extends Activity {
 		
 		// server port
 		serverPort = (EditText) findViewById(R.id.server_port);
+		
+		// image transition
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.image_transition_item, R.id.transition, AirPlayUtils.getTransitionDescriptions());
+		imageTransition = (Spinner) findViewById(R.id.image_transition);
+		imageTransition.setAdapter(adapter);
 		
 		// load settings
 		loadSettings();
@@ -86,12 +96,28 @@ public class SettingsActivity extends Activity {
 	} 	
 	
 	private void loadSettings() {
+		// server port
 		serverPort.setText("" + prefs.getInt("ServerPort", 9999));
+		// image transition
+		imageTransition.setSelection(prefs.getInt("ImageTransition", 0));
 	}
 	
 	private void saveSettings() {
+		// validate port number
+		try {
+			int i = Integer.parseInt(serverPort.getText().toString());
+			if (i < 1024 || i > 65535) {
+				Toast.makeText(this, "Server port: must be in range 1024-65535", Toast.LENGTH_SHORT).show();
+				return;
+			}
+		} catch (Exception e) {
+			Toast.makeText(this, "Server port: must be a number", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		// save
 		Editor editor = prefs.edit();
 		editor.putInt("ServerPort", Integer.parseInt(serverPort.getText().toString()));
+		editor.putInt("ImageTransition", imageTransition.getSelectedItemPosition());
 		editor.commit();
 	}
 	

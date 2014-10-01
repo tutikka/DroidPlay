@@ -49,13 +49,14 @@ public class AirPlayClientService {
 	 * 
 	 * @param file The image file
 	 * @param serviceInfo The service to use
+	 * @param transition The image transition to use
 	 * @throws Exception If there are any problems with the parameters
 	 */
-	public void putImage(File file, ServiceInfo serviceInfo) throws Exception {
+	public void putImage(File file, ServiceInfo serviceInfo, String transition) throws Exception {
 		if (serviceInfo == null) {
 			throw new Exception("Not connected to AirPlay service");
 		}
-		es.submit(new PutImageTask(file, serviceInfo));
+		es.submit(new PutImageTask(file, serviceInfo, transition));
 	}
 	
 	/**
@@ -95,9 +96,12 @@ public class AirPlayClientService {
 		
 		private ServiceInfo serviceInfo;
 		
-		public PutImageTask(File file, ServiceInfo serviceInfo) {
+		private String transition;
+		
+		public PutImageTask(File file, ServiceInfo serviceInfo, String transition) {
 			this.file = file;
 			this.serviceInfo = serviceInfo;
+			this.transition = transition;
 		}
 		
 		@Override
@@ -113,6 +117,7 @@ public class AirPlayClientService {
 				conn.setRequestProperty("Content-Length", "" + file.length());
 				conn.setRequestProperty("X-Apple-AssetKey", UUID.randomUUID().toString());
 				conn.setRequestProperty("X-Apple-Session-ID", UUID.randomUUID().toString());
+				conn.setRequestProperty("X-Apple-Transition", transition);
 				conn.setRequestProperty("User-Agent", "MediaControl/1.0");
 				BufferedOutputStream out = new BufferedOutputStream(conn.getOutputStream());
 				BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));

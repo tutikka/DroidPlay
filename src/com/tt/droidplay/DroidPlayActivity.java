@@ -136,7 +136,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 				File file = (File) adapter.getItem(position);
 				try {
 					if (FileUtils.isImage(file)) {
-						clientService.putImage(file, services.get(selectedService));
+						clientService.putImage(file, services.get(selectedService), AirPlayUtils.getTransition(prefs.getInt("ImageTransition", 0)));
 					} else if (FileUtils.isVideo(file)) {
 						URL url = new URL("http", deviceAddress.getHostAddress(), prefs.getInt("ServerPort", 9999), Base64.encodeToString(file.getAbsolutePath().getBytes(), Base64.NO_WRAP|Base64.URL_SAFE));
 						clientService.playVideo(url, services.get(selectedService));

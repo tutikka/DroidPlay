@@ -11,9 +11,17 @@
     	android:layout_height="wrap_content"
     	android:textSize="18sp"
     	android:textColor="#444444"
-    	android:text="* Server port number:"
+    	android:text="Server port number:"
     	android:padding="4dp"/>
 
+    <TextView
+    	android:layout_width="fill_parent" 
+    	android:layout_height="wrap_content"
+    	android:textSize="14sp"
+    	android:textColor="#888888"
+    	android:text="(Requires application restart)"
+    	android:padding="4dp"/>
+    
 	<EditText 
 	    android:id="@+id/server_port"
  		android:layout_width="fill_parent"
@@ -26,9 +34,18 @@
     <TextView
     	android:layout_width="fill_parent" 
     	android:layout_height="wrap_content"
-    	android:textSize="14sp"
-    	android:textColor="#888888"
-    	android:text="* Requires application restart"
-    	android:padding="4dp"/>
+    	android:textSize="18sp"
+    	android:textColor="#444444"
+    	android:text="Image transition:"
+    	android:padding="4dp"
+    	android:layout_marginTop="16dp"/>
 	
+	<Spinner
+	    android:id="@+id/image_transition"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+ 		android:textColor="#444444"
+ 		android:textSize="18sp"
+        android:padding="4dp"/>
+
 </LinearLayout>
