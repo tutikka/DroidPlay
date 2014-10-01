@@ -118,36 +118,43 @@ public class HttpServer {
 			try {
 				HttpHead head = HttpHead.parse(socket.getInputStream());
 				if (head == null) {
-					handle400(socket);
+					handle400(socket, true);
 					return;
 				}
-				handleDownload(socket, head);
+				boolean close = HttpHead.closeClientSocket(head);
+				handleDownload(socket, head, close);
 			} catch (IOException e) {
 				Log.w(TAG, "could not read from client: " + e.getMessage());
 				e.printStackTrace(System.err);
-			} finally {
-				if (socket != null) {
-					try {
-						socket.close();
-						Log.d(TAG, "client socket closed");
-					} catch (Exception e) {
-						Log.w(TAG, "could not close client socket: " + e.getMessage());
-						e.printStackTrace(System.err);
-					}
-				}
 			}
 		}
 
 	}
 	
-	private void handle400(Socket socket) {
+	private void closeClientSocket(Socket socket) {
+		if (socket != null) {
+			try {
+				socket.close();
+				Log.d(TAG, "client socket closed");
+			} catch (Exception e) {
+				Log.w(TAG, "could not close client socket: " + e.getMessage());
+				e.printStackTrace(System.err);
+			}
+		}
+	}
+	
+	private void handle400(Socket socket, boolean close) {
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(socket.getOutputStream());
 			pw.println("HTTP/1.1 400 Bad Request");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
-            pw.println("Connection: close");
+            if (close) {
+            	pw.println("Connection: close");
+            } else {
+            	pw.println("Connection: keep-alive");
+            }
 			pw.println();
 		} catch (IOException e) {
 			Log.e(TAG, "could not respond to client (HTTP 400): " + e.getMessage());
@@ -156,17 +163,24 @@ public class HttpServer {
 			if (pw != null) {
 				pw.close();
 			}
+			if (close) {
+				closeClientSocket(socket);
+			}
 		}
 	}
 	
-	private void handle403(Socket socket) {
+	private void handle403(Socket socket, boolean close) {
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(socket.getOutputStream());
 			pw.println("HTTP/1.1 403 Forbidden");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
-            pw.println("Connection: close");
+            if (close) {
+            	pw.println("Connection: close");
+            } else {
+            	pw.println("Connection: keep-alive");
+            }
 			pw.println();
 		} catch (IOException e) {
 			Log.w(TAG, "could not respond to client (HTTP 403): " + e.getMessage());
@@ -175,17 +189,24 @@ public class HttpServer {
 			if (pw != null) {
 				pw.close();
 			}
+			if (close) {
+				closeClientSocket(socket);
+			}
 		}
 	}
 	
-	private void handle404(Socket socket) {
+	private void handle404(Socket socket, boolean close) {
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(socket.getOutputStream());
 			pw.println("HTTP/1.1 404 Not Found");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
-            pw.println("Connection: close");
+            if (close) {
+            	pw.println("Connection: close");
+            } else {
+            	pw.println("Connection: keep-alive");
+            }
 			pw.println();
 		} catch (IOException e) {
 			Log.w(TAG, "could not respond to client (HTTP 404): " + e.getMessage());
@@ -194,10 +215,13 @@ public class HttpServer {
 			if (pw != null) {
 				pw.close();
 			}
+			if (close) {
+				closeClientSocket(socket);
+			}
 		}
 	}
 	
-	private void handleDownload(Socket socket, HttpHead head) {
+	private void handleDownload(Socket socket, HttpHead head, boolean close) {
 		String path = null;
 		try {
 			path = new String(Base64.decode(head.getUri(), Base64.NO_WRAP|Base64.URL_SAFE), "UTF-8");
@@ -205,18 +229,18 @@ public class HttpServer {
 		} catch (Exception e) {
 			Log.w(TAG, "could not parse uri from request: " + e.getMessage());
 			e.printStackTrace(System.err);
-			handle400(socket);
+			handle400(socket, close);
 			return;
 		}
 		File file = new File(path);
         if (!file.exists()) {
         	Log.w(TAG, "file not found: " + path);
-        	handle404(socket);
+        	handle404(socket, close);
             return;
         }        
         if (!file.canRead()) {
         	Log.w(TAG, "cannot read file: " + path);
-        	handle403(socket);
+        	handle403(socket, close);
             return;
         }
         boolean isRange = false;
@@ -257,7 +281,11 @@ public class HttpServer {
 	            out.write(("Content-Range: bytes " + start + "-" + end + "/" + file.length() + "\n").getBytes());
 	            out.write("Accept-Ranges: bytes\n".getBytes());
 	            out.write("Content-Type: video/mp4\n".getBytes());
-	            out.write("Connection: close\n".getBytes());
+	            if (close) {
+	            	out.write("Connection: close\n".getBytes());
+	            } else {
+	            	out.write("Connection: keep-alive\n".getBytes());
+	            }
 	            out.write("\n".getBytes());
 	            byte[] buffer = new byte[32768];
 	            raf = new RandomAccessFile(file, "r");
@@ -293,6 +321,9 @@ public class HttpServer {
     					e.printStackTrace(System.err);
         			}
         		}
+    			if (close) {
+    				closeClientSocket(socket);
+    			}
         	}
             Log.d(TAG, "range download complete");
         } else {
@@ -306,7 +337,11 @@ public class HttpServer {
 	            out.write(("Server: " + getServerHeader() + "\n").getBytes());
 	            out.write(("Content-Length: " + file.length() + "\n").getBytes());
 	            out.write("Content-Type: video/mp4\n".getBytes());
-	            out.write("Connection: close\n".getBytes());
+	            if (close) {
+	            	out.write("Connection: close\n".getBytes());
+	            } else {
+	            	out.write("Connection: keep-alive\n".getBytes());
+	            }
 	            out.write("\n".getBytes());
 	            byte[] buffer = new byte[32768];
 	            in = new BufferedInputStream(new FileInputStream(file));
@@ -335,6 +370,9 @@ public class HttpServer {
     					e.printStackTrace(System.err);
         			}
         		}
+    			if (close) {
+    				closeClientSocket(socket);
+    			}
         	}
             Log.d(TAG, "full download complete");
         }

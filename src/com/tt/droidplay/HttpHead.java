@@ -68,6 +68,25 @@ public class HttpHead {
 		}
 	}
 	
+	public static boolean closeClientSocket(HttpHead head) {
+		if (head == null) {
+			return (true);
+		}
+		if (head.getHeaders() == null) {
+			return (true);
+		}
+		boolean result = false;
+		for (String name : head.getHeaders().keySet()) {
+			String value = head.getHeaders().get(name);
+			if ("connection".equals(name.toLowerCase())) {
+				if ("close".equals(value.toLowerCase())) {
+					result = true;
+				}
+			}
+		}
+		return (result);
+	}
+	
 	/**
 	 * Initialize the http head object.
 	 */
