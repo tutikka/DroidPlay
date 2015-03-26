@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tt.droidplay"
-    android:versionCode="6"
-    android:versionName="0.2.3" >
+    android:versionCode="7"
+    android:versionName="0.2.4" >
 
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19" />
+    <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="22"/>
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />  
@@ -20,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.tt.droidplay.DroidPlayActivity"
+            android:name=".DroidPlayActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:launchMode="singleTask"
             android:label="@string/app_name" >
@@ -30,7 +28,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.tt.droidplay.SettingsActivity"
+            android:name=".SettingsActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:label="@string/app_name" >
         </activity>
