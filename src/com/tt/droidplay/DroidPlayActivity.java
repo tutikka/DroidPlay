@@ -113,7 +113,7 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		
 		// navigation drawer
 		navigationLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-		List<NavigationItem> navigationItems = new ArrayList<>();
+		List<NavigationItem> navigationItems = new ArrayList<NavigationItem>();
 		navigationItems.add(new NavigationItem("connect", "Connect to AirPlay...", R.drawable.ic_action_cast));
 		navigationItems.add(new NavigationItem("pictures", "Pictures", R.drawable.ic_action_picture));
 		navigationItems.add(new NavigationItem("videos", "Videos", R.drawable.ic_action_video));

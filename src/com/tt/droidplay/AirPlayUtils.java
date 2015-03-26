@@ -44,7 +44,7 @@ public class AirPlayUtils {
 	 * @return The list of descriptions (used in the UI).
 	 */
 	public static List<String> getTransitionDescriptions() {
-		List<String> descriptions = new ArrayList<>();
+		List<String> descriptions = new ArrayList<String>();
 		for (String code : transitions) {
 			descriptions.add(transitionDescriptions.get(code));
 		}
