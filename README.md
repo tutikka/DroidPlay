@@ -19,10 +19,12 @@ Not Supported (at least yet...)
 
 - Play videos from external services (e.g. YouTube)
 - Play music
-- Slideshows, transitions, etc. for photos
+- Slide shows
 
 Screenshots
 -----------
+
+DroidPlay running on Asus Nexus 7 with Android 5.1.
 
 ![ScreenShot](/screenshots/ss-1.png)
 
@@ -47,6 +49,6 @@ Credits
 - JmDNS library for discovery (http://jmdns.sourceforge.net)
 - Unofficial AirPlay protocol (http://nto.github.io/AirPlay.html)
 - Placeholder image (http://placehold.it)
-- Android action bar icon pack (https://developer.android.com/design/downloads/index.html)
 - QR code generator (https://www.the-qrcode-generator.com)
-- Glyph icons embedded in thumbnails (http://glyphicons.com)
+- Sample images (https://developers.google.com/speed/webp/gallery1)
+- Material design icons (https://www.google.com/design/icons/)
