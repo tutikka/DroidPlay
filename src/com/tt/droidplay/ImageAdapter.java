@@ -117,10 +117,10 @@ public class ImageAdapter extends BaseAdapter {
 	    protected Bitmap doInBackground(File... params) {
 	        File file = params[0];
 	        if (FileUtils.isVideo(file)) {
-		    	Bitmap bitmap = ImageUtils.createVideoThumbnail(context, file, 128);
+		    	Bitmap bitmap = ImageUtils.createVideoThumbnail(context, file, 128, 128);
 		    	return (bitmap);
 	        } else if (FileUtils.isImage(file)){
-		    	Bitmap bitmap = ImageUtils.createImageThumbnail(context, file, 128);
+		    	Bitmap bitmap = ImageUtils.createImageThumbnail(file, 128, 128);
 		    	return (bitmap);
 	        } else {
 	        	return (null);

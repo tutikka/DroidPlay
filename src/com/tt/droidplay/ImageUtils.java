@@ -3,12 +3,9 @@ package com.tt.droidplay;
 import java.io.File;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.graphics.*;
 import android.media.ThumbnailUtils;
+import android.provider.MediaStore;
 
 /**
  * Class for various static image utilities.
@@ -17,61 +14,68 @@ import android.media.ThumbnailUtils;
  */
 public class ImageUtils {
 
-	/**
-	 * Create a thumbnail bitmap from a video file.
-	 * 
-	 * @param context The application context
-	 * @param file The video file
-	 * @param maxDimension The maximum dimension size in pixels
-	 * @return The thumbnail bitmap which is max (maxDimension X maxDimension)
-	 */
-	public static Bitmap createVideoThumbnail(Context context, File file, int maxDimension) {
-		Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(file.getAbsolutePath(), 3);
-        Canvas canvas = new Canvas(thumbnail);
-        Paint paint = new Paint();
-        paint.setColor(Color.rgb(238, 238, 238));
-        canvas.drawRect(0, 0, 32, 32, paint);
-        canvas.drawBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.glyphicons_173_play), 0, 0, null);
-		return (thumbnail);
-	}
-	
-	/**
-	 * Create a thumbnail bitmap from an image file.
-	 * 
-	 * @param context The application context
-	 * @param file The image file
-	 * @param maxDimension The maximum dimension size in pixels
-	 * @return The thumbnail bitmap which is max (maxDimension X maxDimension)
-	 */
-	public static Bitmap createImageThumbnail(Context context, File file, int maxDimension) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-        options.inSampleSize = calculateInSampleSize(options, maxDimension);
-        options.inJustDecodeBounds = false;
-        Bitmap thumbnail = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(file.getAbsolutePath(), options), maxDimension, maxDimension, true);
-        Canvas canvas = new Canvas(thumbnail);
-        Paint paint = new Paint();
-        paint.setColor(Color.rgb(238, 238, 238));
-        canvas.drawRect(0, 0, 32, 32, paint);
-        canvas.drawBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.glyphicons_138_picture), 0, 0, null);
-        return (thumbnail);
-	}
-
-	//
-	// Private
-	//
-	
-    private static int calculateInSampleSize(BitmapFactory.Options options, int maxDimension) {
-        int outHeight = options.outHeight;
-        int outWidth = options.outWidth;
-        int result = 1;
-        while (outHeight > maxDimension || outWidth > maxDimension) {
-        	outHeight = outHeight / 2;
-        	outWidth = outWidth / 2;
-        	result++;
+    /**
+     * Create a thumbnail with rounded corners from a video file.
+     *
+     * @param file The input file
+     * @param width The thumbnail width
+     * @param height The thumbnail height
+     * @return The generated thumbnail
+     */
+    public static Bitmap createVideoThumbnail(Context context, File file, int width, int height) {
+        Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(file.getAbsolutePath(), MediaStore.Video.Thumbnails.MINI_KIND);
+        if (bitmap == null) {
+            return (null);
         }
-        return (result);
+        Bitmap thumbnail = ThumbnailUtils.extractThumbnail(bitmap, width, height);
+        if (thumbnail == null) {
+            return (null);
+        }
+        Bitmap out = Bitmap.createBitmap(thumbnail.getWidth(), thumbnail.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        RectF rect = new RectF(0, 0, canvas.getWidth(), canvas.getHeight());
+        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawRoundRect(rect, 12.0f, 12.0f, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(thumbnail, 0, 0, paint);
+        Paint bg = new Paint();
+        bg.setAntiAlias(true);
+        bg.setColor(Color.argb(127, 0, 0, 0));
+        bg.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(63, 63, 50, bg);
+        canvas.drawBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_play_circle_outline_white_48dp), 15, 15, null);
+        return (out);
+    }
+
+    /**
+     * Create a thumbnail with rounded corners from an image file.
+     *
+     * @param file The input file
+     * @param width The thumbnail width
+     * @param height The thumbnail height
+     * @return The generated thumbnail
+     */
+    public static Bitmap createImageThumbnail(File file, int width, int height) {
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+        if (bitmap == null) {
+            return (null);
+        }
+        Bitmap thumbnail = ThumbnailUtils.extractThumbnail(bitmap, width, height);
+        if (thumbnail == null) {
+            return (null);
+        }
+        Bitmap out = Bitmap.createBitmap(thumbnail.getWidth(), thumbnail.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        RectF rect = new RectF(0, 0, canvas.getWidth(), canvas.getHeight());
+        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawRoundRect(rect, 12.0f, 12.0f, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(thumbnail, 0, 0, paint);
+        return (out);
     }
 	
 }
