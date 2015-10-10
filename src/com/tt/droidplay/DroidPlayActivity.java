@@ -114,12 +114,12 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 		// navigation drawer
 		navigationLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		List<NavigationItem> navigationItems = new ArrayList<NavigationItem>();
-		navigationItems.add(new NavigationItem("connect", "Connect to AirPlay...", R.drawable.ic_action_cast));
-		navigationItems.add(new NavigationItem("pictures", "Pictures", R.drawable.ic_action_picture));
-		navigationItems.add(new NavigationItem("videos", "Videos", R.drawable.ic_action_video));
-		navigationItems.add(new NavigationItem("downloads", "Downloads", R.drawable.ic_action_download));
-		navigationItems.add(new NavigationItem("folders", "Choose folder...", R.drawable.ic_action_storage));
-		navigationItems.add(new NavigationItem("stop", "Stop playback", R.drawable.ic_action_stop));
+		navigationItems.add(new NavigationItem("connect", "Connect to AirPlay...", R.drawable.ic_cast_connected_grey600_36dp));
+		navigationItems.add(new NavigationItem("pictures", "Pictures", R.drawable.ic_image_grey600_36dp));
+		navigationItems.add(new NavigationItem("videos", "Videos", R.drawable.ic_videocam_grey600_36dp));
+		navigationItems.add(new NavigationItem("downloads", "Downloads", R.drawable.ic_file_download_grey600_36dp));
+		navigationItems.add(new NavigationItem("folders", "Choose folder...", R.drawable.ic_folder_grey600_36dp));
+		navigationItems.add(new NavigationItem("stop", "Stop playback", R.drawable.ic_stop_grey600_36dp));
 		navigationAdapter = new NavigationAdapter(this, navigationItems);
 		navigationList = (ListView) findViewById(R.id.drawer);
 		navigationList.setAdapter(navigationAdapter);

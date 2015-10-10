@@ -4,12 +4,12 @@
         android:id="@+id/cancel"
         android:showAsAction="ifRoom|withText"
         android:title="Cancel"
-        android:icon="@drawable/ic_action_cancel"/>
+        android:icon="@drawable/ic_close_white_48dp"/>
     
     <item
         android:id="@+id/save"
         android:showAsAction="ifRoom|withText"
         android:title="Save"
-        android:icon="@drawable/ic_action_accept"/>
+        android:icon="@drawable/ic_check_white_48dp"/>
     
 </menu> 
