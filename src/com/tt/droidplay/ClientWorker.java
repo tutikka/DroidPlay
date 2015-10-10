@@ -64,31 +64,33 @@ public class ClientWorker implements Runnable {
         }
     }
 
+    private static boolean isHeadTerminated(String line) {
+        return (line == null || line.isEmpty());
+    }
+
     public HttpHead parseHead(InputStream in) {
         try {
             HttpHead head = new HttpHead();
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String line;
-            int index = 0;
-            while (!(line = br.readLine()).isEmpty()) {
-                if (index == 0) {
+            int i = 0;
+            while (!isHeadTerminated(line = br.readLine())) {
+                if (i == 0) {
                     StringTokenizer st = new StringTokenizer(line, " ");
                     if (st.countTokens() == 3) {
                         head.setMethod(st.nextToken().trim());
                         head.setUri(st.nextToken().trim());
                         head.setProtocol(st.nextToken().trim());
-                        Log.d(TAG, "[" + id + "] found status line: " + line);
                     }
                 } else {
-                    int i = line.indexOf(":");
-                    if (i != -1) {
-                        String name = line.substring(0, i).trim();
-                        String value = line.substring(i + 2).trim();
-                        head.addHeader(name, value);
-                        Log.d(TAG, "[" + id + "] < " + name + ": " + value);
+                    int j = line.indexOf(":");
+                    if (j != -1) {
+                        String name = line.substring(0, j);
+                        String value = line.substring(j + 2);
+                        head.getHeaders().put(name, value);
                     }
                 }
-                index++;
+                i++;
             }
             return (head);
         } catch (Exception e) {
@@ -103,6 +105,7 @@ public class ClientWorker implements Runnable {
             pw.println("HTTP/1.1 400 Bad Request");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
+            pw.println("Content-Length: 0");
             if (close) {
                 pw.println("Connection: close");
             } else {
@@ -129,6 +132,7 @@ public class ClientWorker implements Runnable {
             pw.println("HTTP/1.1 403 Forbidden");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
+            pw.println("Content-Length: 0");
             if (close) {
                 pw.println("Connection: close");
             } else {
@@ -155,6 +159,7 @@ public class ClientWorker implements Runnable {
             pw.println("HTTP/1.1 404 Not Found");
             pw.println("Date: " + getDateHeader());
             pw.println("Server: " + getServerHeader());
+            pw.println("Content-Length: 0");
             if (close) {
                 pw.println("Connection: close");
             } else {
@@ -227,9 +232,7 @@ public class ClientWorker implements Runnable {
                 } else {
                     setResponseHeader("Connection", "keep-alive", out);
                 }
-                setResponseHeader("Cache-Control", "no-cache, no-store, must-revalidate", out);
-                setResponseHeader("Pragma", "no-cache", out);
-                setResponseHeader("Expires", "0", out);
+                setResponseHeader("Cache-Control", "private, max-age=0", out);
                 out.write("\n".getBytes("UTF-8"));
                 FileChannel fc = new FileInputStream(file).getChannel();
                 ByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, start, end - start + 1);
@@ -271,9 +274,7 @@ public class ClientWorker implements Runnable {
                 } else {
                     setResponseHeader("Connection", "keep-alive", out);
                 }
-                setResponseHeader("Cache-Control", "no-cache, no-store, must-revalidate", out);
-                setResponseHeader("Pragma", "no-cache", out);
-                setResponseHeader("Expires", "0", out);
+                setResponseHeader("Cache-Control", "private, max-age=0", out);
                 out.write("\n".getBytes("UTF-8"));
                 FileChannel fc = new FileInputStream(file).getChannel();
                 ByteBuffer buffer = ByteBuffer.allocate(32 * 1024);
