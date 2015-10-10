@@ -200,15 +200,18 @@ public class DroidPlayActivity extends Activity implements OnItemClickListener, 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
-	    case R.id.settings: {
-			Intent intent = new Intent(this, SettingsActivity.class);
-			startActivity(intent);
-			break;
-	    }
-	    default:
-	    	break;
-	    }
-
+			case R.id.settings: {
+				Intent intent = new Intent(this, SettingsActivity.class);
+				startActivity(intent);
+				break;
+			}
+			case R.id.exit: {
+				finish();
+				break;
+			}
+			default:
+				break;
+			}
 	    return (true);
 	} 	
 	
